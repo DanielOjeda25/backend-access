@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cruz Negra DB</title>
+    <style>
+      :root { color-scheme: light dark; }
+      body { font-family: system-ui, Arial, sans-serif; margin: 0; padding: 24px; }
+      h1 { margin: 0 0 16px; }
+      .actions { display: flex; gap: 8px; margin-bottom: 16px; }
+      button { padding: 8px 12px; border-radius: 6px; border: 1px solid #888; cursor: pointer; }
+      button:hover { filter: brightness(1.1); }
+      .status { margin: 8px 0 16px; min-height: 20px; font-size: 14px; }
+      table { border-collapse: collapse; width: 100%; }
+      th, td { border: 1px solid #aaa; padding: 8px; text-align: left; }
+      thead { background: #eee; }
+      @media (prefers-color-scheme: dark) { thead { background: #333; } }
+      .columns-controls { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+      .columns-panel { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 16px; }
+      .columns-panel label { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #aaa; padding: 4px 8px; border-radius: 6px; font-size: 12px; }
+      /* Modal flotante */
+      .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; }
+      .modal { background: #fff; color: #000; padding: 16px; border-radius: 8px; width: min(800px, 95vw); max-height: 90vh; overflow: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+      .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+      .hidden { display: none !important; }
+      @media (prefers-color-scheme: dark) { .modal { background: #222; color: #eee; } }
+      .charts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+      .chart-box { border: 1px solid #aaa; border-radius: 8px; padding: 8px; background: rgba(0,0,0,0.03); }
+      .chart-title { font-size: 13px; margin: 0 0 6px; }
+    </style>
+  </head>
+  <body>
+    <h1>Visualización de datos (doble vista + combinado)</h1>
+    <p>Selecciona dos tablas para verlas lado a lado y generar una tabla combinada.</p>
+    <style>
+      .grid2 { display: flex; gap: 16px; align-items: flex-start; }
+      .col { flex: 1 1 0; min-width: 0; }
+      .section-title { margin: 24px 0 8px; font-weight: 600; }
+    </style>
+
+    <div class="grid2">
+      <div class="col" id="col-left">
+        <div class="actions">
+          <label for="tabla-select-l">Tabla izquierda:</label>
+          <select id="tabla-select-l">
+          <optgroup label="Personas">
+            <option value="clientes">clientes</option>
+            <option value="empleados">empleados</option>
+          </optgroup>
+          <optgroup label="Proyectos">
+            <option value="proyectos">proyectos</option>
+            <option value="tareas">tareas</option>
+            <option value="recursos">recursos</option>
+          </optgroup>
+          <optgroup label="Facturación">
+            <option value="factura_encabezado">factura_encabezado</option>
+            <option value="factura_detalle">factura_detalle</option>
+          </optgroup>
+          <optgroup label="Tiempo">
+            <option value="tiempo_de_desarrollo">tiempo_de_desarrollo</option>
+          </optgroup>
+          </select>
+          <label for="search-l" style="margin-left:12px;">Buscar:</label>
+          <input id="search-l" type="search" placeholder="Texto a buscar" />
+          <label for="page-size-l" style="margin-left:12px;">Filas por página:</label>
+          <select id="page-size-l">
+            <option value="25">25</option>
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
+        <div class="status" id="status-l"></div>
+        <div class="columns-controls">
+          <span>Filtros por columna:</span>
+          <button id="filters-clear-l">Limpiar filtros</button>
+        </div>
+        <div id="filters-panel-l" class="columns-panel"></div>
+        <div class="pagination">
+          <button id="prev-l">Anterior</button>
+          <span id="page-info-l">Página 1</span>
+          <button id="next-l">Siguiente</button>
+        </div>
+        <table id="data-table-l" aria-live="polite">
+          <thead id="thead-l"></thead>
+          <tbody id="tbody-l"></tbody>
+        </table>
+      </div>
+
+      <div class="col" id="col-right">
+        <div class="actions">
+          <label for="tabla-select-r">Tabla derecha:</label>
+          <select id="tabla-select-r">
+            <optgroup label="Personas">
+              <option value="clientes">clientes</option>
+              <option value="empleados">empleados</option>
+            </optgroup>
+            <optgroup label="Proyectos">
+              <option value="proyectos">proyectos</option>
+              <option value="tareas">tareas</option>
+              <option value="recursos">recursos</option>
+            </optgroup>
+            <optgroup label="Facturación">
+              <option value="factura_encabezado">factura_encabezado</option>
+              <option value="factura_detalle">factura_detalle</option>
+            </optgroup>
+            <optgroup label="Tiempo">
+              <option value="tiempo_de_desarrollo">tiempo_de_desarrollo</option>
+            </optgroup>
+          </select>
+          <label for="search-r" style="margin-left:12px;">Buscar:</label>
+          <input id="search-r" type="search" placeholder="Texto a buscar" />
+          <label for="page-size-r" style="margin-left:12px;">Filas por página:</label>
+          <select id="page-size-r">
+            <option value="25">25</option>
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
+        <div class="status" id="status-r"></div>
+        <div class="columns-controls">
+          <span>Filtros por columna:</span>
+          <button id="filters-clear-r">Limpiar filtros</button>
+        </div>
+        <div id="filters-panel-r" class="columns-panel"></div>
+        <div class="pagination">
+          <button id="prev-r">Anterior</button>
+          <span id="page-info-r">Página 1</span>
+          <button id="next-r">Siguiente</button>
+        </div>
+        <table id="data-table-r" aria-live="polite">
+          <thead id="thead-r"></thead>
+          <tbody id="tbody-r"></tbody>
+        </table>
+      </div>
+    </div>
+
+    
+
+    <div class="section-title">Tabla combinada</div>
+    <div class="actions">
+      <label for="join-left-key">Clave izquierda:</label>
+      <select id="join-left-key"></select>
+      <label for="join-right-key" style="margin-left:12px;">Clave derecha:</label>
+      <select id="join-right-key"></select>
+      
+      <button id="gen-combined" style="margin-left:12px;">Generar combinado</button>
+      <span style="margin-left:12px; font-size:12px;">Si no seleccionas claves, se muestra unión por columnas comunes.</span>
+    </div>
+    <div class="actions">
+      <label for="search-combined">Buscar en combinado:</label>
+      <input id="search-combined" type="search" placeholder="Texto a buscar" />
+      <label for="chart-column" style="margin-left:12px;">Columna para gráfico:</label>
+      <select id="chart-column"></select>
+      <button id="export-combined" style="margin-left:12px;">Exportar a Excel</button>
+      <button id="show-chart" style="margin-left:8px;">Ver gráfico</button>
+      <button id="show-summary" style="margin-left:8px;">Ver resumen</button>
+    </div>
+    <table id="data-table-combined" aria-live="polite">
+      <thead id="thead-combined"></thead>
+      <tbody id="tbody-combined"></tbody>
+    </table>
+    <!-- Modal flotante para el gráfico -->
+    <div id="chart-overlay" class="modal-overlay hidden">
+      <div class="modal">
+        <div class="modal-header">
+          <strong>Gráfico del combinado</strong>
+          <button id="close-chart">Cerrar</button>
+        </div>
+        <div class="actions" style="margin-bottom:8px;">
+          <label for="chart-group">Agrupar por:</label>
+          <select id="chart-group"></select>
+        </div>
+        <canvas id="combined-chart" width="760" height="380"></canvas>
+        <div id="charts-grid" class="charts-grid hidden"></div>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script type="module" src="./js/app.js"></script>
+  </body>
+  </html>
