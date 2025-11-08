@@ -1,0 +1,5 @@
+/* Media queries trasladadas desde index.html para mantener organización */
+@media (prefers-color-scheme: dark) {
+  thead { background: #333; }
+  .modal { background: #222; color: #eee; }
+}

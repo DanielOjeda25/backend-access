@@ -25,3 +25,31 @@ export function getFilterColumns(kind, columnsByTable, allowedEnumFiltersByTable
   const set = new Set([...enumCols, ...dateCols]);
   return Array.from(set);
 }
+
+export function formatDisplayValue(column, value) {
+  if (value == null) return '';
+  const v = String(value);
+  // Map booleans for generic Estado columns
+  if (/^Estado$/i.test(column)) {
+    const truthy = v === 'true' || v === '1' || v === 'activo' || v === 'Activo';
+    return truthy ? 'Activo' : 'Inactivo';
+  }
+  // Date formatting to DD/MM/YYYY for values like YYYY-MM-DD or DD/MM/YYYY
+  if (isDateColumnName(column) || isDateString(v)) {
+    // Extract YYYY-MM-DD
+    const isoMatch = v.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (isoMatch) {
+      const [, y, m, d] = isoMatch;
+      return `${d}/${m}/${y}`;
+    }
+    // Already DD/MM/YYYY
+    const slashMatch = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (slashMatch) {
+      const [ , dd, mm, yyyy ] = slashMatch;
+      const d = dd.padStart(2, '0');
+      const m = mm.padStart(2, '0');
+      return `${d}/${m}/${yyyy}`;
+    }
+  }
+  return v;
+}

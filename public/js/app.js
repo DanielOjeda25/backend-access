@@ -1,4 +1,5 @@
 import { createView } from './multi.js';
+import { formatDisplayValue } from './utils.js';
 import { combineRows, joinByKeys } from './combiner.js';
 
 function fillSelect(selectEl, options) {
@@ -21,17 +22,21 @@ function renderCombined(columns, rows) {
   thead.innerHTML = '';
   tbody.innerHTML = '';
   const trh = document.createElement('tr');
-  for (const c of columns) {
-    const th = document.createElement('th');
-    th.textContent = c;
-    trh.appendChild(th);
-  }
+  trh.className = 'bg-gray-100 dark:bg-gray-800';
+    for (const c of columns) {
+      const th = document.createElement('th');
+      th.className = 'px-3 py-2 text-left text-gray-900 dark:text-gray-100 font-medium';
+      th.textContent = c;
+      trh.appendChild(th);
+    }
   thead.appendChild(trh);
   for (const r of rows) {
     const tr = document.createElement('tr');
+    tr.className = 'border-b border-gray-200 dark:border-gray-700 odd:bg-gray-50 even:bg-gray-100 dark:odd:bg-gray-900 dark:even:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700/60';
     for (const c of columns) {
       const td = document.createElement('td');
-      td.textContent = r?.[c] ?? '';
+      td.className = 'px-3 py-2 text-gray-900 dark:text-gray-100';
+      td.textContent = formatDisplayValue(c, r?.[c]);
       tr.appendChild(td);
     }
     tbody.appendChild(tr);
@@ -43,9 +48,11 @@ function renderCombinedBodyOnly(columns, rows) {
   tbody.innerHTML = '';
   for (const r of rows) {
     const tr = document.createElement('tr');
+    tr.className = 'border-b border-gray-200 dark:border-gray-700 odd:bg-gray-50 even:bg-gray-100 dark:odd:bg-gray-900 dark:even:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700/60';
     for (const c of columns) {
       const td = document.createElement('td');
-      td.textContent = r?.[c] ?? '';
+      td.className = 'px-3 py-2 text-gray-900 dark:text-gray-100';
+      td.textContent = formatDisplayValue(c, r?.[c]);
       tr.appendChild(td);
     }
     tbody.appendChild(tr);
@@ -97,6 +104,73 @@ const rightView = createView({
 
 leftView.init();
 rightView.init();
+
+// Exportar Excel (.xlsx) para Tabla 1 (izquierda) y Tabla 2 (derecha)
+function exportXLSX(columns, rows, filename) {
+  if (!window.XLSX) {
+    alert('La librería XLSX no está disponible.');
+    return;
+  }
+  const aoa = [columns];
+  for (const r of rows) aoa.push(columns.map(c => r?.[c] ?? ''));
+  const ws = window.XLSX.utils.aoa_to_sheet(aoa);
+  const wb = window.XLSX.utils.book_new();
+  window.XLSX.utils.book_append_sheet(wb, ws, 'Datos');
+  window.XLSX.writeFile(wb, filename || 'tabla.xlsx');
+}
+
+const exportLeftBtn = document.getElementById('export-left');
+const exportRightBtn = document.getElementById('export-right');
+exportLeftBtn?.addEventListener('click', () => {
+  const cols = leftView.getVisibleColumns();
+  const rows = leftView.getFilteredRows();
+  exportXLSX(cols, rows, 'tabla_izquierda.xlsx');
+});
+exportRightBtn?.addEventListener('click', () => {
+  const cols = rightView.getVisibleColumns();
+  const rows = rightView.getFilteredRows();
+  exportXLSX(cols, rows, 'tabla_derecha.xlsx');
+});
+
+// Navbar dinámico con nombres de tablas y texto de búsqueda
+const navLeftName = document.getElementById('nav-left-name');
+const navRightName = document.getElementById('nav-right-name');
+const navLeftSearchPill = document.getElementById('nav-left-search-pill');
+const navRightSearchPill = document.getElementById('nav-right-search-pill');
+const navLeftSearchText = document.getElementById('nav-left-search-text');
+const navRightSearchText = document.getElementById('nav-right-search-text');
+const selectLeft = document.getElementById('tabla-select-l');
+const selectRight = document.getElementById('tabla-select-r');
+const searchLeft = document.getElementById('search-l');
+const searchRight = document.getElementById('search-r');
+
+function updateNavbar() {
+  if (navLeftName && selectLeft) navLeftName.textContent = selectLeft.value || '—';
+  if (navRightName && selectRight) navRightName.textContent = selectRight.value || '—';
+  const ql = (searchLeft?.value || '').trim();
+  const qr = (searchRight?.value || '').trim();
+  if (ql) {
+    navLeftSearchText && (navLeftSearchText.textContent = ql);
+    navLeftSearchPill && navLeftSearchPill.classList.remove('hidden');
+  } else {
+    navLeftSearchPill && navLeftSearchPill.classList.add('hidden');
+  }
+  if (qr) {
+    navRightSearchText && (navRightSearchText.textContent = qr);
+    navRightSearchPill && navRightSearchPill.classList.remove('hidden');
+  } else {
+    navRightSearchPill && navRightSearchPill.classList.add('hidden');
+  }
+  if (searchLeft && selectLeft) searchLeft.placeholder = 'Buscar en ' + (selectLeft.value || 'tabla izquierda');
+  if (searchRight && selectRight) searchRight.placeholder = 'Buscar en ' + (selectRight.value || 'tabla derecha');
+}
+
+selectLeft?.addEventListener('change', updateNavbar);
+selectRight?.addEventListener('change', updateNavbar);
+searchLeft?.addEventListener('input', () => { setTimeout(updateNavbar, 10); });
+searchRight?.addEventListener('input', () => { setTimeout(updateNavbar, 10); });
+// Inicializar estado del navbar
+updateNavbar();
 
 // Estado del combinado para búsqueda/exportación/gráfico
 let combinedColumns = [];

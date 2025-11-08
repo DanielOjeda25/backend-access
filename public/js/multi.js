@@ -1,5 +1,5 @@
 import { createState, columnsByTable, allowedEnumFiltersByTable } from './data.js';
-import { isDateString, isDateColumnName, getVisibleColumns, getFilterColumns } from './utils.js';
+import { isDateString, isDateColumnName, getVisibleColumns, getFilterColumns, formatDisplayValue } from './utils.js';
 
 function getEls(ids) {
   const pick = (k) => document.getElementById(ids[k]);
@@ -35,17 +35,21 @@ export function createView(ids, options = {}) {
     els.theadEl.innerHTML = '';
     const columns = getVisibleColumns(kind, columnsByTable);
     const trHead = document.createElement('tr');
+    trHead.className = 'bg-gray-100 dark:bg-gray-800';
     for (const col of columns) {
       const th = document.createElement('th');
+      th.className = 'px-3 py-2 text-left text-gray-900 dark:text-gray-100 font-medium';
       th.textContent = col;
       trHead.appendChild(th);
     }
     els.theadEl.appendChild(trHead);
     for (const row of rows) {
       const tr = document.createElement('tr');
+      tr.className = 'border-b border-gray-200 dark:border-gray-700 odd:bg-gray-50 even:bg-gray-100 dark:odd:bg-gray-900 dark:even:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700/60';
       for (const col of columns) {
         const td = document.createElement('td');
-        td.textContent = row?.[col] ?? '';
+        td.className = 'px-3 py-2 text-gray-900 dark:text-gray-100';
+        td.textContent = formatDisplayValue(col, row?.[col]);
         tr.appendChild(td);
       }
       els.tbodyEl.appendChild(tr);
@@ -144,8 +148,15 @@ export function createView(ids, options = {}) {
         values.sort((a,b) => String(a).localeCompare(String(b)));
         for (const v of values) {
           const opt = document.createElement('option');
-          opt.value = String(v);
-          opt.textContent = String(v);
+          // Mostrar “Activo/Inactivo” para columna Estado pero mantener valores originales como true/false/1
+          if (/^Estado$/i.test(col)) {
+            const sv = String(v);
+            opt.value = sv;
+            opt.textContent = (sv === 'true' || sv === '1') ? 'Activo' : 'Inactivo';
+          } else {
+            opt.value = String(v);
+            opt.textContent = String(v);
+          }
           select.appendChild(opt);
         }
         select.addEventListener('change', () => { st[col].eq = select.value; applyFilter(); renderPage(); });
