@@ -77,8 +77,6 @@ const leftView = createView({
 }, {
   onAfterLoad(cols) {
     colsLeft = cols;
-    const sel = document.getElementById('join-left-key');
-    fillSelect(sel, colsLeft);
   }
 });
 
@@ -97,8 +95,6 @@ const rightView = createView({
 }, {
   onAfterLoad(cols) {
     colsRight = cols;
-    const sel = document.getElementById('join-right-key');
-    fillSelect(sel, colsRight);
   }
 });
 
@@ -191,24 +187,24 @@ const showSummaryBtn = document.getElementById('show-summary');
 const chartsGrid = document.getElementById('charts-grid');
 const chartGroupSelect = document.getElementById('chart-group');
 
-document.getElementById('gen-combined').addEventListener('click', () => {
-  const keyA = document.getElementById('join-left-key').value;
-  const keyB = document.getElementById('join-right-key').value;
+document.getElementById('gen-combined')?.addEventListener('click', () => {
   const rowsA = leftView.getFilteredRows();
   const rowsB = rightView.getFilteredRows();
   const colsA = leftView.getVisibleColumns();
   const colsB = rightView.getVisibleColumns();
-  let result;
-  if (keyA && keyB) {
-    result = joinByKeys(rowsA, colsA, rowsB, colsB, keyA, keyB);
-  } else {
-    result = combineRows(rowsA, colsA, rowsB, colsB, 'union');
+  const result = combineRows(rowsA, colsA, rowsB, colsB, 'union');
+  const payload = {
+    columns: result.columns,
+    rows: result.rows,
+    tableL: leftView.getCurrentTable(),
+    tableR: rightView.getCurrentTable(),
+  };
+  try {
+    localStorage.setItem('combinedPayload', JSON.stringify(payload));
+  } catch (e) {
+    console.warn('No se pudo guardar el combinado en localStorage:', e);
   }
-  renderCombined(result.columns, result.rows);
-  combinedColumns = result.columns;
-  combinedRows = result.rows;
-  filteredCombinedRows = combinedRows;
-  updateChartColumns(combinedColumns);
+  window.open('./combined.html', '_blank');
 });
 
 function updateChartColumns(cols) {
@@ -250,16 +246,7 @@ combinedSearch?.addEventListener('input', () => {
 exportCombinedBtn?.addEventListener('click', () => {
   if (!combinedRows?.length) return;
   const rows = filteredCombinedRows?.length ? filteredCombinedRows : combinedRows;
-  const csv = toCSV(combinedColumns, rows);
-  const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'tabla_combinada.csv';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  exportXLSX(combinedColumns, rows, 'tabla_combinada.xlsx');
 });
 
 function toCSV(cols, rows) {

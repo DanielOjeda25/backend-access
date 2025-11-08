@@ -3,33 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="./icon.svg" />
+    
     <title>Cruz Negra DB</title>
     <style>
-      :root { color-scheme: light dark; }
-      body { font-family: system-ui, Arial, sans-serif; margin: 0; padding: 24px; }
-      h1 { margin: 0 0 16px; }
-      .actions { display: flex; gap: 8px; margin-bottom: 16px; }
-      button { padding: 8px 12px; border-radius: 6px; border: 1px solid #888; cursor: pointer; }
-      button:hover { filter: brightness(1.1); }
-      .status { margin: 8px 0 16px; min-height: 20px; font-size: 14px; }
-      table { border-collapse: collapse; width: 100%; }
-      th, td { border: 1px solid #aaa; padding: 8px; text-align: left; }
-      thead { background: #eee; }
-      .columns-controls { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
-      .columns-panel { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 16px; }
-      .columns-panel label { display: block; margin-bottom: 4px; font-size: 12px; color: #e5e7eb; font-weight: 500; }
-      .filter-group { display: flex; flex-direction: column; gap: 6px; }
-      .columns-panel input, .columns-panel select { background: #374151; color: #e5e7eb; border: 1px solid #4b5563; padding: 4px 6px; border-radius: 6px; }
-      .columns-panel input::placeholder { color: #9ca3af; }
-      .columns-panel input[type="date"] { background: #374151; color: #e5e7eb; }
-      /* Modal flotante */
-      .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; }
-      .modal { background: #fff; color: #000; padding: 16px; border-radius: 8px; width: min(800px, 95vw); max-height: 90vh; overflow: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-      .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-      .hidden { display: none !important; }
-      .charts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-      .chart-box { border: 1px solid #aaa; border-radius: 8px; padding: 8px; background: rgba(0,0,0,0.03); }
-      .chart-title { font-size: 13px; margin: 0 0 6px; }
+      /* resumen eliminado: se remueven estilos de cuadrícula múltiple */
       html { scroll-behavior: smooth; }
     </style>
     <link rel="stylesheet" href="styles.css" />
@@ -42,7 +20,7 @@
   </head>
   <body class="bg-gray-900 text-gray-100">
     <nav class="sticky top-0 z-10 bg-gray-900/80 backdrop-blur border-b border-gray-800 mb-4">
-      <div class="max-w-7xl mx-auto px-4 py-2 flex items-center gap-4 text-sm">
+      <div class="max-w-7xl mx-auto px-4 py-2 flex flex-wrap items-center gap-4 text-sm">
         <a href="#section-left" class="flex items-center gap-2 text-blue-400 hover:underline" aria-label="Ir a la tabla izquierda">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4"><path d="M3 5a2 2 0 012-2h14a2 2 0 012 2v3H3V5zm0 6h20v8a2 2 0 01-2 2H5a2 2 0 01-2-2v-8zm4 3v2h6v-2H7z"/></svg>
           <span class="text-gray-300">Izquierda:</span>
@@ -55,18 +33,36 @@
           <span id="nav-right-name" class="font-medium text-gray-100">—</span>
           <span id="nav-right-search-pill" class="hidden px-2 py-0.5 rounded bg-blue-800/60 text-blue-200">buscando: <span id="nav-right-search-text"></span></span>
         </a>
-        <a href="#section-combined" class="flex items-center gap-2 text-blue-400 hover:underline" aria-label="Ir a tabla combinada">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4"><path d="M5 3h4v18H5V3zm5 6h4v12h-4V9zm5-4h4v16h-4V5z"/></svg>
-          <span class="font-medium">Combinada</span>
-        </a>
+        <div class="ml-auto flex items-center gap-3">
+          <button id="gen-combined" class="bg-green-600 hover:bg-green-700 text-white rounded px-3 py-2">Generar combinado</button>
+        </div>
       </div>
     </nav>
-    <h1 class="text-2xl font-semibold mb-2">Visualización de datos (doble vista + combinado)</h1>
-    <p class="text-gray-300 mb-6">Selecciona dos tablas para verlas lado a lado y generar una tabla combinada.</p>
+    
     <style>
       .grid2 { display: flex; gap: 16px; align-items: flex-start; }
       .col { flex: 1 1 0; min-width: 0; }
       .section-title { margin: 24px 0 8px; font-weight: 600; }
+      /* Contenedor con scroll horizontal interno para tablas anchas */
+      .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      /* Responsivo: acomodar footers y acciones en pantallas pequeñas */
+      @media (max-width: 768px) {
+        .table-footer { flex-direction: column; align-items: flex-start; gap: 8px; }
+        .actions { gap: 8px; }
+      }
+      /* Select del modal: asegurar contraste en modo oscuro */
+      #chart-overlay .actions select {
+        background-color: #111827; /* gris muy oscuro */
+        color: #e5e7eb;            /* texto claro */
+        border: 1px solid #374151; /* borde gris oscuro */
+        border-radius: 0.375rem;
+        padding: 0.25rem 0.5rem;
+      }
+      #chart-overlay .actions select:focus {
+        outline: none;
+        border-color: #60a5fa;     /* azul claro en foco */
+        box-shadow: 0 0 0 2px rgba(96,165,250,0.35);
+      }
     </style>
 
     <div class="space-y-6">
@@ -124,10 +120,12 @@
           <span id="page-info-l-top" class="text-sm">Página 1</span>
           <button id="next-l-top" class="bg-blue-600 hover:bg-blue-700 text-white rounded px-3 py-1">Siguiente</button>
         </div>
-        <table id="data-table-l" aria-live="polite" class="min-w-full text-sm divide-y divide-gray-700">
-          <thead id="thead-l"></thead>
-          <tbody id="tbody-l"></tbody>
-        </table>
+        <div class="table-scroll">
+          <table id="data-table-l" aria-live="polite" class="min-w-full text-sm divide-y divide-gray-700">
+            <thead id="thead-l"></thead>
+            <tbody id="tbody-l"></tbody>
+          </table>
+        </div>
         <div class="table-footer flex items-center justify-between mt-3">
           <div class="flex items-center gap-2">
             <label for="page-size-l" class="text-sm text-gray-300">Filas por página:</label>
@@ -196,10 +194,12 @@
           <span id="page-info-r-top" class="text-sm">Página 1</span>
           <button id="next-r-top" class="bg-blue-600 hover:bg-blue-700 text-white rounded px-3 py-1">Siguiente</button>
         </div>
-        <table id="data-table-r" aria-live="polite" class="min-w-full text-sm divide-y divide-gray-700">
-          <thead id="thead-r"></thead>
-          <tbody id="tbody-r"></tbody>
-        </table>
+        <div class="table-scroll">
+          <table id="data-table-r" aria-live="polite" class="min-w-full text-sm divide-y divide-gray-700">
+            <thead id="thead-r"></thead>
+            <tbody id="tbody-r"></tbody>
+          </table>
+        </div>
         <div class="table-footer flex items-center justify-between mt-3">
           <div class="flex items-center gap-2">
             <label for="page-size-r" class="text-sm text-gray-300">Filas por página:</label>
@@ -220,45 +220,7 @@
 
     
 
-    <div id="section-combined" class="section-title text-lg font-semibold mt-6">Tabla combinada</div>
-    <div class="actions flex flex-wrap gap-3 mb-4">
-      <label for="join-left-key">Clave izquierda:</label>
-      <select id="join-left-key" class="border rounded-md px-2 py-1"></select>
-      <label for="join-right-key" style="margin-left:12px;">Clave derecha:</label>
-      <select id="join-right-key" class="border rounded-md px-2 py-1"></select>
-      
-      <button id="gen-combined" class="bg-green-600 hover:bg-green-700 text-white rounded px-3 py-2">Generar combinado</button>
-      <span class="text-xs text-gray-600">Si no seleccionas claves, se muestra unión por columnas comunes.</span>
-    </div>
-    <div class="actions flex flex-wrap gap-3 mb-4">
-      <label for="search-combined">Buscar en combinado:</label>
-      <input id="search-combined" type="search" placeholder="Texto a buscar" class="border rounded-md px-2 py-1" />
-      <label for="chart-column" style="margin-left:12px;">Columna para gráfico:</label>
-      <select id="chart-column" class="border rounded-md px-2 py-1"></select>
-      <button id="export-combined" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded px-3 py-2">Exportar a Excel</button>
-      <button id="show-chart" class="bg-blue-600 hover:bg-blue-700 text-white rounded px-3 py-2">Ver gráfico</button>
-      <button id="show-summary" class="bg-gray-700 hover:bg-gray-800 text-white rounded px-3 py-2">Ver resumen</button>
-    </div>
-    <table id="data-table-combined" aria-live="polite" class="min-w-full text-sm divide-y divide-gray-700">
-      <thead id="thead-combined"></thead>
-      <tbody id="tbody-combined"></tbody>
-    </table>
-    <!-- Modal flotante para el gráfico -->
-    <div id="chart-overlay" class="modal-overlay hidden">
-      <div class="modal rounded-lg shadow-xl">
-        <div class="modal-header">
-          <strong>Gráfico del combinado</strong>
-          <button id="close-chart">Cerrar</button>
-        </div>
-        <div class="actions flex items-center gap-2 mb-2">
-          <label for="chart-group">Agrupar por:</label>
-          <select id="chart-group" class="border rounded-md px-2 py-1"></select>
-        </div>
-        <canvas id="combined-chart" width="760" height="380"></canvas>
-        <div id="charts-grid" class="charts-grid hidden"></div>
-      </div>
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    
     <script type="module" src="./js/app.js"></script>
   </body>
   </html>

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tabla combinada</title>
+    <link rel="icon" href="./icon.svg" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="combined-page">
+    <div class="container">
+      <div class="section-title">Combinado</div>
+      <div id="meta" class="text-sm" style="margin-bottom:8px;color:#9ca3af"></div>
+      <div class="actions">
+        <label for="search-combined">Buscar:</label>
+        <input id="search-combined" type="search" placeholder="Texto a buscar" />
+        <label for="rows-limit" style="margin-left:12px;">Filas a mostrar:</label>
+        <select id="rows-limit">
+          <option value="20" selected>20</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+          <option value="all">Todas</option>
+        </select>
+        <label for="chart-column" style="margin-left:12px;">Columna para gráfico:</label>
+        <select id="chart-column"></select>
+        <button id="export-combined" class="btn btn-indigo">Exportar a Excel</button>
+        <button id="show-chart" class="btn btn-primary">Ver gráfico</button>
+      </div>
+      <div class="table-scroll">
+        <table id="data-table-combined" aria-live="polite">
+          <thead id="thead-combined"></thead>
+          <tbody id="tbody-combined"></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="chart-overlay" class="modal-overlay">
+      <div class="modal rounded-lg shadow-xl">
+        <div class="modal-header">
+          <strong>Gráfico del combinado</strong>
+          <button id="close-chart" class="btn">Cerrar</button>
+        </div>
+        <div class="actions" style="margin-bottom:8px;">
+          <label for="chart-group">Agrupar por:</label>
+          <select id="chart-group"></select>
+        </div>
+        <canvas id="combined-chart" width="760" height="380"></canvas>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script type="module" src="./js/combined.js"></script>
+  </body>
+</html>
