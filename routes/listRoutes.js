@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { listarTablaDinamica, ALLOWED_TABLES } = require('../controllers/dynamicListController');
+const { listarTablaDinamica, ALLOWED_TABLES, actualizarRegistroDinamico, crearRegistroDinamico, eliminarRegistroDinamico } = require('../controllers/dynamicListController');
 
 // Endpoint raíz para verificar que el router está montado y listar tablas permitidas
 router.get('/', (req, res) => {
@@ -8,5 +8,8 @@ router.get('/', (req, res) => {
 });
 
 router.get('/:table', listarTablaDinamica);
+router.put('/:table/:id', actualizarRegistroDinamico);
+router.post('/:table', crearRegistroDinamico);
+router.delete('/:table/:id', eliminarRegistroDinamico);
 
 module.exports = router;

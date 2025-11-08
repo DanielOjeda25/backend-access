@@ -11,6 +11,30 @@ const ALLOWED_TABLES = [
   'factura_detalle',
 ];
 
+// Primary keys por tabla para operaciones de actualización/eliminación
+const PRIMARY_KEYS = {
+  clientes: 'Id_cliente',
+  empleados: 'Id_empleados',
+  proyectos: 'Id_proyecto',
+  tareas: 'Id_tarea',
+  tiempo_de_desarrollo: 'Id_tiempo',
+  recursos: 'Id_recurso',
+  factura_encabezado: 'Id_factura',
+  factura_detalle: 'Id_detalle',
+};
+
+// Columnas conocidas por tabla (para filtrar payloads y respetar estructura)
+const COLUMNS_BY_TABLE = {
+  empleados: ['Id_empleados', 'Nombre', 'Apellido', 'Dni', 'Puesto', 'Email', 'Telefono', 'Fecha_ingreso', 'Estado'],
+  clientes: ['Id_cliente', 'Razon_social', 'Cuit', 'Direccion', 'Telefono', 'Email', 'Fecha_alta', 'Estado'],
+  proyectos: ['Id_proyecto', 'Id_cliente', 'Nombre_proyecto', 'Descripcion', 'Fecha_inicio', 'Fecha_fin_estimada', 'Estado', 'Presupuesto', 'Id_coordinador'],
+  tareas: ['Id_tarea', 'Id_proyecto', 'Id_empleado', 'Nombre_tarea', 'Detalle', 'Fecha_asignacion', 'Fecha_entrega', 'Estado', 'Horas_estimadas'],
+  tiempo_de_desarrollo: ['Id_tiempo', 'Id_tarea', 'Id_empleado', 'Fecha_registro', 'Horas_trabajadas', 'Observaciones'],
+  recursos: ['Id_recurso', 'Nombre_recurso', 'Tipo', 'Costo_mensual', 'Id_proyecto', 'Observaciones'],
+  factura_encabezado: ['Id_factura', 'Tipo_comprobante', 'Punto_venta', 'Nro_comprobante', 'Fecha_emision', 'Id_cliente', 'Id_proyecto', 'Condicion_venta', 'Subtotal', 'Iva', 'Total', 'Estado_pago'],
+  factura_detalle: ['Id_detalle', 'Id_factura', 'Descripcion', 'Cantidad', 'Precio_unitario', 'Alicuota_iva', 'Importe_neto', 'Importe_iva', 'Importe_total'],
+};
+
 // Columnas buscables por tabla (evitar columnas numéricas o fechas para ilike)
 const SEARCHABLE_COLUMNS = {
   empleados: ['Nombre', 'Apellido', 'Dni', 'Puesto', 'Email', 'Telefono'],
@@ -223,4 +247,94 @@ async function listarTablaDinamica(req, res) {
   }
 }
 
-module.exports = { listarTablaDinamica, ALLOWED_TABLES };
+// Actualiza un registro por ID dinámicamente
+async function actualizarRegistroDinamico(req, res) {
+  try {
+    const table = (req.params.table || '').trim();
+    const id = (req.params.id || '').trim();
+    if (!ALLOWED_TABLES.includes(table)) {
+      return res.status(400).json({ message: 'Tabla no permitida', table });
+    }
+    const pk = PRIMARY_KEYS[table];
+    if (!pk) {
+      return res.status(400).json({ message: 'Tabla sin PK conocida', table });
+    }
+    if (!id) {
+      return res.status(400).json({ message: 'ID requerido' });
+    }
+    const supabase = getSupabase();
+    if (!supabase) {
+      return res.status(500).json({ message: 'Supabase no está configurado. Define SUPABASE_URL y la clave en .env' });
+    }
+    // Filtra payload a columnas permitidas para la tabla
+    const allowedCols = COLUMNS_BY_TABLE[table] || [];
+    const raw = req.body || {};
+    const payload = Object.keys(raw)
+      .filter((k) => allowedCols.includes(k))
+      .reduce((acc, k) => { acc[k] = raw[k]; return acc; }, {});
+    // Convierte ID a número si aplica
+    const idValue = /^\d+$/.test(id) ? Number(id) : id;
+    const { data, error } = await supabase.from(table).update(payload).eq(pk, idValue).select('*');
+    if (error) throw error;
+    return res.json({ updated: Array.isArray(data) ? data.length : 0, data: data || [] });
+  } catch (err) {
+    console.error('Error al actualizar registro dinámico:', err);
+    return res.status(500).json({ message: 'Error al actualizar', error: err?.message || String(err) });
+  }
+}
+
+// Inserta un registro dinámicamente
+async function crearRegistroDinamico(req, res) {
+  try {
+    const table = (req.params.table || '').trim();
+    if (!ALLOWED_TABLES.includes(table)) {
+      return res.status(400).json({ message: 'Tabla no permitida', table });
+    }
+    const supabase = getSupabase();
+    if (!supabase) {
+      return res.status(500).json({ message: 'Supabase no está configurado. Define SUPABASE_URL y la clave en .env' });
+    }
+    const allowedCols = COLUMNS_BY_TABLE[table] || [];
+    const raw = req.body || {};
+    const payload = Object.keys(raw)
+      .filter((k) => allowedCols.includes(k))
+      .reduce((acc, k) => { acc[k] = raw[k]; return acc; }, {});
+    const { data, error } = await supabase.from(table).insert([payload]).select('*');
+    if (error) throw error;
+    return res.json({ inserted: Array.isArray(data) ? data.length : 0, data: data || [] });
+  } catch (err) {
+    console.error('Error al insertar registro dinámico:', err);
+    return res.status(500).json({ message: 'Error al insertar', error: err?.message || String(err) });
+  }
+}
+
+// Elimina un registro por ID dinámicamente
+async function eliminarRegistroDinamico(req, res) {
+  try {
+    const table = (req.params.table || '').trim();
+    const id = (req.params.id || '').trim();
+    if (!ALLOWED_TABLES.includes(table)) {
+      return res.status(400).json({ message: 'Tabla no permitida', table });
+    }
+    const pk = PRIMARY_KEYS[table];
+    if (!pk) {
+      return res.status(400).json({ message: 'Tabla sin PK conocida', table });
+    }
+    if (!id) {
+      return res.status(400).json({ message: 'ID requerido' });
+    }
+    const supabase = getSupabase();
+    if (!supabase) {
+      return res.status(500).json({ message: 'Supabase no está configurado. Define SUPABASE_URL y la clave en .env' });
+    }
+    const idValue = /^\d+$/.test(id) ? Number(id) : id;
+    const { data, error } = await supabase.from(table).delete().eq(pk, idValue).select('*');
+    if (error) throw error;
+    return res.json({ deleted: Array.isArray(data) ? data.length : 0, data: data || [] });
+  } catch (err) {
+    console.error('Error al eliminar registro dinámico:', err);
+    return res.status(500).json({ message: 'Error al eliminar', error: err?.message || String(err) });
+  }
+}
+
+module.exports = { listarTablaDinamica, ALLOWED_TABLES, actualizarRegistroDinamico, crearRegistroDinamico, eliminarRegistroDinamico };

@@ -15,6 +15,7 @@ button:hover { filter: brightness(1.1); }
 table { border-collapse: collapse; width: 100%; }
 th, td { border: 1px solid #aaa; padding: 8px; text-align: left; }
 thead { background: #eee; }
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .columns-controls { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
 .columns-panel { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 16px; }
 .columns-panel label { display: block; margin-bottom: 4px; font-size: 12px; color: #e5e7eb; font-weight: 500; }

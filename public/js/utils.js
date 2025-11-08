@@ -29,26 +29,31 @@ export function getFilterColumns(kind, columnsByTable, allowedEnumFiltersByTable
 export function formatDisplayValue(column, value) {
   if (value == null) return '';
   const v = String(value);
-  // Map booleans for generic Estado columns
-  if (/^Estado$/i.test(column)) {
-    const truthy = v === 'true' || v === '1' || v === 'activo' || v === 'Activo';
-    return truthy ? 'Activo' : 'Inactivo';
-  }
-  // Date formatting to DD/MM/YYYY for values like YYYY-MM-DD or DD/MM/YYYY
-  if (isDateColumnName(column) || isDateString(v)) {
-    // Extract YYYY-MM-DD
+  // Map booleans a Activo/Inactivo
+  if (v.toLowerCase() === 'true' || v === 'true' || value === true) return 'Activo';
+  if (v.toLowerCase() === 'false' || v === 'false' || value === false) return 'Inactivo';
+  // Fechas: mostrar como DD/MM/YYYY
+  const isPotentialDate = isDateColumnName(column)
+    || /^\d{4}-\d{2}-\d{2}/.test(v)
+    || /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(v)
+    || /^(\d{2})(\d{2})(\d{4})$/.test(v);
+  if (isPotentialDate) {
     const isoMatch = v.match(/^(\d{4})-(\d{2})-(\d{2})/);
     if (isoMatch) {
       const [, y, m, d] = isoMatch;
       return `${d}/${m}/${y}`;
     }
-    // Already DD/MM/YYYY
     const slashMatch = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
     if (slashMatch) {
       const [ , dd, mm, yyyy ] = slashMatch;
       const d = dd.padStart(2, '0');
       const m = mm.padStart(2, '0');
       return `${d}/${m}/${yyyy}`;
+    }
+    const plainMatch = v.match(/^(\d{2})(\d{2})(\d{4})$/);
+    if (plainMatch) {
+      const [ , dd, mm, yyyy ] = plainMatch;
+      return `${dd}/${mm}/${yyyy}`;
     }
   }
   return v;

@@ -39,3 +39,58 @@ export function createState() {
     filtersByTable: {},
   };
 }
+
+// Metadatos de claves foráneas para construir selects en los formularios
+// labelColumn: columna a usar como etiqueta; labelColumns: múltiples columnas combinadas con espacio
+export const foreignKeysByTable = {
+  proyectos: {
+    Id_cliente: { table: 'clientes', idColumn: 'Id_cliente', labelColumn: 'Razon_social' },
+    Id_coordinador: { table: 'empleados', idColumn: 'Id_empleados', labelColumns: ['Nombre', 'Apellido'] },
+  },
+  tareas: {
+    Id_proyecto: { table: 'proyectos', idColumn: 'Id_proyecto', labelColumn: 'Nombre_proyecto' },
+    Id_empleado: { table: 'empleados', idColumn: 'Id_empleados', labelColumns: ['Nombre', 'Apellido'] },
+  },
+  tiempo_de_desarrollo: {
+    Id_tarea: { table: 'tareas', idColumn: 'Id_tarea', labelColumn: 'Nombre_tarea' },
+    Id_empleado: { table: 'empleados', idColumn: 'Id_empleados', labelColumns: ['Nombre', 'Apellido'] },
+  },
+  recursos: {
+    Id_proyecto: { table: 'proyectos', idColumn: 'Id_proyecto', labelColumn: 'Nombre_proyecto' },
+  },
+  factura_encabezado: {
+    Id_cliente: { table: 'clientes', idColumn: 'Id_cliente', labelColumn: 'Razon_social' },
+    Id_proyecto: { table: 'proyectos', idColumn: 'Id_proyecto', labelColumn: 'Nombre_proyecto' },
+  },
+  factura_detalle: {
+    Id_factura: { table: 'factura_encabezado', idColumn: 'Id_factura', labelColumn: 'Nro_comprobante' },
+  },
+};
+
+// Tipado por tabla/columna para normalizar payloads
+export const typesByTable = {
+  clientes: {
+    Id_cliente: 'serial', Razon_social: 'varchar', Cuit: 'varchar', Direccion: 'text', Telefono: 'varchar', Email: 'varchar', Fecha_alta: 'date', Estado: 'boolean',
+  },
+  empleados: {
+    Id_empleados: 'serial', Nombre: 'varchar', Apellido: 'varchar', Dni: 'varchar', Puesto: 'varchar', Email: 'varchar', Telefono: 'varchar', Fecha_ingreso: 'date', Estado: 'boolean',
+  },
+  proyectos: {
+    Id_proyecto: 'serial', Id_cliente: 'int', Nombre_proyecto: 'varchar', Descripcion: 'text', Fecha_inicio: 'date', Fecha_fin_estimada: 'date', Estado: 'varchar', Presupuesto: 'numeric', Id_coordinador: 'int',
+  },
+  tareas: {
+    Id_tarea: 'serial', Id_proyecto: 'int', Id_empleado: 'int', Nombre_tarea: 'varchar', Detalle: 'text', Fecha_asignacion: 'date', Fecha_entrega: 'date', Estado: 'varchar', Horas_estimadas: 'numeric',
+  },
+  tiempo_de_desarrollo: {
+    Id_tiempo: 'serial', Id_tarea: 'int', Id_empleado: 'int', Fecha_registro: 'date', Horas_trabajadas: 'numeric', Observaciones: 'text',
+  },
+  recursos: {
+    Id_recurso: 'serial', Nombre_recurso: 'varchar', Tipo: 'varchar', Costo_mensual: 'numeric', Id_proyecto: 'int', Observaciones: 'text',
+  },
+  factura_encabezado: {
+    Id_factura: 'serial', Tipo_comprobante: 'varchar', Punto_venta: 'varchar', Nro_comprobante: 'varchar', Fecha_emision: 'date', Id_cliente: 'int', Id_proyecto: 'int', Condicion_venta: 'varchar', Subtotal: 'numeric', Iva: 'numeric', Total: 'numeric', Estado_pago: 'varchar',
+  },
+  factura_detalle: {
+    Id_detalle: 'serial', Id_factura: 'int', Descripcion: 'text', Cantidad: 'numeric', Precio_unitario: 'numeric', Alicuota_iva: 'numeric', Importe_neto: 'numeric', Importe_iva: 'numeric', Importe_total: 'numeric',
+  },
+};

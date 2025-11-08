@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Administrar datos</title>
+    <link rel="icon" href="./icon.svg" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-900 text-gray-100">
+    <div class="container">
+      <div class="section-title">Administrar tablas</div>
+      <div class="actions flex flex-wrap gap-3 mb-4 items-center">
+        <label for="crud-table" class="text-gray-200">Tabla:</label>
+        <select id="crud-table" class="border border-gray-700 bg-gray-800 text-gray-100 rounded-md px-2 py-1">
+          <optgroup label="Personas">
+            <option value="clientes">clientes</option>
+            <option value="empleados">empleados</option>
+          </optgroup>
+          <optgroup label="Proyectos">
+            <option value="proyectos">proyectos</option>
+            <option value="tareas">tareas</option>
+            <option value="recursos">recursos</option>
+          </optgroup>
+          <optgroup label="Facturación">
+            <option value="factura_encabezado">factura_encabezado</option>
+            <option value="factura_detalle">factura_detalle</option>
+          </optgroup>
+          <optgroup label="Tiempo">
+            <option value="tiempo_de_desarrollo">tiempo_de_desarrollo</option>
+          </optgroup>
+        </select>
+        <input id="crud-search" type="text" placeholder="Buscar..." class="border border-gray-700 bg-gray-800 text-gray-100 rounded-md px-3 py-1 w-64" />
+        <button id="crud-insert" class="bg-green-600 hover:bg-green-700 text-white rounded px-3 py-1">Nuevo registro</button>
+      </div>
+      <div id="crud-status" class="text-sm text-gray-300 mb-2"></div>
+      <div class="table-scroll overflow-x-auto">
+        <table id="crud-table-el" class="min-w-full text-sm divide-y divide-gray-700">
+          <thead id="crud-thead"></thead>
+          <tbody id="crud-tbody"></tbody>
+        </table>
+      </div>
+      <!-- Modal para nuevo registro -->
+      <div id="crud-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center">
+        <div class="bg-gray-800 text-gray-100 rounded-lg shadow-xl w-[min(680px,95vw)]">
+          <div class="px-4 py-3 border-b border-gray-700 flex items-center justify-between">
+            <h2 class="font-semibold">Nuevo registro</h2>
+            <button id="crud-modal-close" class="text-gray-300 hover:text-white">✕</button>
+          </div>
+          <form id="crud-form" class="p-4 space-y-3 max-h-[70vh] overflow-auto">
+            <!-- Campos generados dinámicamente -->
+          </form>
+          <div class="px-4 py-3 border-t border-gray-700 flex justify-end gap-2">
+            <button id="crud-modal-cancel" class="bg-gray-700 hover:bg-gray-600 text-white rounded px-3 py-2">Cancelar</button>
+            <button id="crud-modal-save" class="bg-green-600 hover:bg-green-700 text-white rounded px-3 py-2">Guardar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="./js/crud.js"></script>
+  </body>
+  </html>
