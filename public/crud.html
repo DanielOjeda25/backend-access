@@ -7,8 +7,24 @@
     <link rel="icon" href="./icon.svg" />
     <link rel="stylesheet" href="styles.css" />
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Iconos (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   </head>
   <body class="bg-gray-900 text-gray-100">
+    <!-- Navbar global -->
+    <nav class="sticky top-0 z-20 bg-slate-900/90 backdrop-blur border-b border-slate-800">
+      <div class="max-w-7xl mx-auto px-4 py-2 flex items-center gap-4">
+        <a href="./index.html" class="flex items-center gap-2 text-slate-200 hover:text-white font-semibold" aria-label="Inicio">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M12 2l7 4v6c0 5-3.5 9-7 10-3.5-1-7-5-7-10V6l7-4zm0 3.2L8 6.1v5c0 3.6 2.3 6.9 4 7.8 1.7-.9 4-4.2 4-7.8v-5l-4-1.9z"/></svg>
+          <span>Cruz Negra</span>
+        </a>
+        <div class="ml-auto flex items-center gap-2 md:gap-3">
+          <a href="./index.html" class="nav-link">Explorar</a>
+          <a href="./crud.html" class="nav-link">Administrar</a>
+          <a href="./combined.html" class="nav-link">Combinado</a>
+        </div>
+      </div>
+    </nav>
     <div class="container">
       <div class="section-title">Administrar tablas</div>
       <div class="actions flex flex-wrap gap-3 mb-4 items-center">
@@ -32,7 +48,10 @@
           </optgroup>
         </select>
         <input id="crud-search" type="text" placeholder="Buscar..." class="border border-gray-700 bg-gray-800 text-gray-100 rounded-md px-3 py-1 w-64" />
-        <button id="crud-insert" class="bg-green-600 hover:bg-green-700 text-white rounded px-3 py-1">Nuevo registro</button>
+        <button id="crud-insert" class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white rounded px-3 py-1">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>Nuevo registro</span>
+        </button>
       </div>
       <div id="crud-status" class="text-sm text-gray-300 mb-2"></div>
       <div class="table-scroll overflow-x-auto">

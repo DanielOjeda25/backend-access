@@ -179,18 +179,20 @@ function renderTable(table, rows) {
     const tdAct = document.createElement('td');
     tdAct.className = 'px-3 py-2';
     const editBtn = document.createElement('button');
-    editBtn.textContent = 'Editar';
-    editBtn.className = 'inline-flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white rounded px-2 md:px-3 py-1 text-xs md:text-sm mr-2 shadow-sm';
+    editBtn.innerHTML = '<i data-lucide="pencil" class="w-4 h-4"></i><span class="hidden md:inline">Editar</span>';
+    editBtn.className = 'inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded px-2 md:px-3 py-1 text-xs md:text-sm mr-2 shadow-sm';
     editBtn.addEventListener('click', () => editRow(table, columns, row));
     const delBtn = document.createElement('button');
-    delBtn.textContent = 'Eliminar';
-    delBtn.className = 'inline-flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white rounded px-2 md:px-3 py-1 text-xs md:text-sm shadow-sm';
+    delBtn.innerHTML = '<i data-lucide="trash-2" class="w-4 h-4"></i><span class="hidden md:inline">Eliminar</span>';
+    delBtn.className = 'inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white rounded px-2 md:px-3 py-1 text-xs md:text-sm shadow-sm';
     delBtn.addEventListener('click', () => deleteRow(table, columns, row));
     tdAct.appendChild(editBtn);
     tdAct.appendChild(delBtn);
     tr.appendChild(tdAct);
     tbodyEl.appendChild(tr);
   }
+  // Renderizar iconos
+  try { window.lucide && window.lucide.createIcons(); } catch {}
 }
 
 function promptValues(columns, row = {}) {

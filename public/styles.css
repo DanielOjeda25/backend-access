@@ -61,3 +61,23 @@ thead { background: #eee; }
 .combined-page .actions input::placeholder { color: #9ca3af; opacity: 1; }
 .combined-page .actions input:focus,
 .combined-page .actions select:focus { outline: none; border-color: #60a5fa; box-shadow: 0 0 0 2px rgba(96,165,250,0.35); }
+
+/* Paleta y estilos para navbar profesional */
+:root {
+  --nav-bg: rgba(15, 23, 42, 0.9); /* slate-900/90 */
+  --nav-border: #1f2937;           /* slate-800 */
+  --nav-link: #cbd5e1;             /* slate-300 */
+  --nav-link-hover: #ffffff;
+  --nav-link-bg-hover: rgba(59, 130, 246, 0.15); /* blue-500/15 */
+}
+
+.nav-link {
+  color: var(--nav-link);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+.nav-link:hover {
+  color: var(--nav-link-hover);
+  background-color: var(--nav-link-bg-hover);
+}
