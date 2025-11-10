@@ -5,6 +5,7 @@ const app = express();
 const empleadoRoutes = require('./routes/empleadoRoutes');
 const clienteRoutes = require('./routes/clienteRoutes');
 const listRoutes = require('./routes/listRoutes');
+const customRoutes = require('./routes/customRoutes');
 const { getSupabase } = require('./lib/supabaseClient');
 
 app.use(cors());
@@ -21,6 +22,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api/empleados', empleadoRoutes);
 app.use('/api/clientes', clienteRoutes);
 app.use('/api/list', listRoutes);
+app.use('/api/custom', customRoutes);
 console.log('Montado router dinámico en /api/list');
 
 // Debug: verificar presencia de variables de entorno sin exponerlas

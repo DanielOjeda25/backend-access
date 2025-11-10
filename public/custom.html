@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="es" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Peticiones personalizadas</title>
+    <link rel="icon" href="./icon.svg" />
+    <link rel="stylesheet" href="styles.css" />
+    <script>
+      tailwind.config = { darkMode: 'class' };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  </head>
+  <body class="bg-gray-900 text-gray-100">
+    <!-- Navbar global -->
+    <nav class="sticky top-0 z-20 bg-slate-900/90 backdrop-blur border-b border-slate-800">
+      <div class="max-w-7xl mx-auto px-4 py-2 flex items-center gap-4">
+        <a href="./index.html" class="flex items-center gap-2 text-slate-200 hover:text-white font-semibold" aria-label="Inicio">
+          <img src="./icon.svg" alt="" aria-hidden="true" class="w-5 h-5" />
+          <span class="text-white">Cruz Negra</span>
+        </a>
+        <div class="ml-auto flex items-center gap-2 md:gap-3">
+          <a href="./index.html" class="nav-link">Explorar</a>
+          <a href="./crud.html" class="nav-link">Administrar</a>
+          <a href="./combined.html" class="nav-link">Combinado</a>
+          <a href="./custom.html" class="nav-link">Peticiones personalizadas</a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-6">
+      <h1 class="text-xl font-semibold mb-4">Peticiones personalizadas</h1>
+      <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 space-y-4">
+        <div class="flex items-center justify-between">
+          <p class="text-sm text-gray-300">Consulta: Total de horas trabajadas por empleado.</p>
+          <button id="info-horas" class="inline-flex items-center gap-1 text-gray-300 hover:text-white p-1 rounded" aria-label="Información de consulta de horas">
+            <i data-lucide="info" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <div class="flex flex-wrap items-end gap-3">
+          <div class="flex flex-col">
+            <label for="empleado-select" class="text-sm text-gray-300">Empleado</label>
+            <select id="empleado-select" class="border border-gray-700 bg-gray-800 text-gray-100 rounded-md px-2 py-1 min-w-[240px]"></select>
+          </div>
+          <button id="consultar" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded px-3 py-2">
+            <i data-lucide="search" class="w-4 h-4"></i>
+            <span>Consultar horas</span>
+          </button>
+        </div>
+
+        <div id="resultado" class="mt-4 text-sm"></div>
+      </div>
+
+      <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 space-y-4 mt-6">
+        <div class="flex items-center justify-between">
+          <p class="text-sm text-gray-300">Muestra: Clientes con más de un proyecto</p>
+          <button id="info-clientes" class="inline-flex items-center gap-1 text-gray-300 hover:text-white p-1 rounded" aria-label="Información de clientes con múltiples proyectos">
+            <i data-lucide="info" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="listar-clientes" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded px-3 py-2">
+            <i data-lucide="list" class="w-4 h-4"></i>
+            <span>Listar clientes</span>
+          </button>
+        </div>
+        <div id="resultado-clientes" class="mt-4 text-sm"></div>
+      </div>
+
+      <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 space-y-4 mt-6">
+        <div class="flex items-center justify-between">
+          <p class="text-sm text-gray-300">Consulta: Facturas por cliente (con proyecto)</p>
+          <button id="info-facturas" class="inline-flex items-center gap-1 text-gray-300 hover:text-white p-1 rounded" aria-label="Información de facturas por cliente">
+            <i data-lucide="info" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <div class="flex flex-wrap items-end gap-3">
+          <div class="flex flex-col">
+            <label for="cliente-select" class="text-sm text-gray-300">Cliente</label>
+            <select id="cliente-select" class="border border-gray-700 bg-gray-800 text-gray-100 rounded-md px-2 py-1 min-w-[240px]"></select>
+          </div>
+          <button id="consultar-facturas" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded px-3 py-2">
+            <i data-lucide="file-text" class="w-4 h-4"></i>
+            <span>Consultar facturas</span>
+          </button>
+        </div>
+        <div id="resultado-facturas" class="mt-4 text-sm"></div>
+      </div>
+
+      <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 space-y-4 mt-6">
+        <div class="flex items-center justify-between">
+          <p class="text-sm text-gray-300">Consulta: Proyectos por estado</p>
+          <button id="info-proyectos" class="inline-flex items-center gap-1 text-gray-300 hover:text-white p-1 rounded" aria-label="Información de proyectos por estado">
+            <i data-lucide="info" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <div class="flex flex-wrap items-end gap-3">
+          <div class="flex flex-col">
+            <label for="estado-select" class="text-sm text-gray-300">Estado</label>
+            <select id="estado-select" class="border border-gray-700 bg-gray-800 text-gray-100 rounded-md px-2 py-1 min-w-[200px]"></select>
+          </div>
+          <button id="consultar-proyectos" class="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white rounded px-3 py-2">
+            <i data-lucide="folder" class="w-4 h-4"></i>
+            <span>Consultar proyectos</span>
+          </button>
+        </div>
+        <div id="resultado-proyectos" class="mt-4 text-sm"></div>
+      </div>
+    </div>
+
+    <!-- Modal información -->
+    <div id="info-modal" class="modal-overlay fixed inset-0 z-50 hidden bg-black/60 flex items-center justify-center" aria-modal="true" role="dialog" aria-labelledby="info-modal-title">
+      <div class="bg-gray-800 border border-gray-700 rounded-lg shadow-xl max-w-2xl w-full mx-4">
+        <div class="flex items-center justify-between p-3 border-b border-gray-700">
+          <h2 id="info-modal-title" class="text-sm font-semibold text-white">Información</h2>
+          <button id="info-modal-close" class="text-gray-300 hover:text-white p-1 rounded" aria-label="Cerrar">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <div class="p-4">
+          <p id="info-modal-desc" class="text-sm text-gray-300 mb-2"></p>
+          <pre class="bg-gray-900 border border-gray-700 rounded-md p-3 overflow-auto text-xs"><code id="info-modal-code" class="text-gray-100"></code></pre>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="./js/custom.js"></script>
+    <script>
+      lucide.createIcons();
+    </script>
+  </body>
+  </html>
