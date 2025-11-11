@@ -107,6 +107,52 @@
         </div>
         <div id="resultado-proyectos" class="mt-4 text-sm"></div>
       </div>
+
+      <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 space-y-4 mt-6">
+        <div class="flex items-center justify-between">
+          <p class="text-sm text-gray-300">Consulta: Tareas por empleado</p>
+          <button id="info-tareas" class="inline-flex items-center gap-1 text-gray-300 hover:text-white p-1 rounded" aria-label="Información de tareas por empleado">
+            <i data-lucide="info" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <div class="flex flex-wrap items-end gap-3">
+          <div class="flex flex-col">
+            <label for="empleado-tareas-select" class="text-sm text-gray-300">Empleado</label>
+            <select id="empleado-tareas-select" class="border border-gray-700 bg-gray-800 text-gray-100 rounded-md px-2 py-1 min-w-[240px]"></select>
+          </div>
+          <button id="consultar-tareas" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded px-3 py-2">
+            <i data-lucide="list-checks" class="w-4 h-4"></i>
+            <span>Consultar tareas</span>
+          </button>
+        </div>
+        <div id="resultado-tareas" class="mt-4 text-sm"></div>
+      </div>
+
+      <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 space-y-4 mt-6">
+        <div class="flex items-center justify-between">
+          <p class="text-sm text-gray-300">Consulta: Recursos por costo mensual (dinámico)</p>
+          <button id="info-recursos" class="inline-flex items-center gap-1 text-gray-300 hover:text-white p-1 rounded" aria-label="Información de recursos por costo">
+            <i data-lucide="info" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <div class="flex flex-wrap items-end gap-3">
+          <div class="flex flex-col">
+            <label for="costo-min-select" class="text-sm text-gray-300">Rango de costo mensual</label>
+            <select id="costo-min-select" class="border border-gray-700 bg-gray-800 text-gray-100 rounded-md px-2 py-1 min-w-[200px]">
+              <option value="">Seleccione un rango...</option>
+              <option value="0-500">Mayor a 0 y menor a 500</option>
+              <option value="500-1000">Mayor a 500 y menor a 1000</option>
+              <option value="1000-1500">Mayor a 1000 y menor a 1500</option>
+              <option value="1500+">Mayores a 1500</option>
+            </select>
+          </div>
+          <button id="consultar-recursos" class="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white rounded px-3 py-2">
+            <i data-lucide="coins" class="w-4 h-4"></i>
+            <span>Consultar recursos</span>
+          </button>
+        </div>
+        <div id="resultado-recursos" class="mt-4 text-sm"></div>
+      </div>
     </div>
 
     <!-- Modal información -->

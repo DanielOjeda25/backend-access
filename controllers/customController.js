@@ -181,4 +181,68 @@ async function getProjectsByEstado(req, res) {
   }
 }
 
-module.exports = { getHoursByEmployee, getClientsWithMultipleProjects, getInvoicesByClient, getProjectsByEstado };
+async function getTasksByEmployee(req, res) {
+  try {
+    const idRaw = (req.query.id_empleado || req.query.Id_empleado || '').toString().trim();
+    const idEmpleado = idRaw ? Number(idRaw) : null;
+    if (!idEmpleado) {
+      return res.status(400).json({ message: 'id_empleado es requerido' });
+    }
+    const supabase = getSupabase();
+    if (!supabase) {
+      return res.status(500).json({ message: 'Supabase no está configurado. Define SUPABASE_URL y la clave en .env' });
+    }
+
+    const { data, error } = await supabase
+      .from('tareas')
+      .select('Id_tarea,Nombre_tarea,Estado,proyectos(Nombre_proyecto),empleados(Nombre,Apellido)')
+      .eq('Id_empleado', idEmpleado);
+    if (error) throw error;
+
+    const list = (Array.isArray(data) ? data : []).map((row) => ({
+      Id_tarea: row?.Id_tarea ?? null,
+      Nombre_tarea: row?.Nombre_tarea || null,
+      Estado_Tarea: row?.Estado || null,
+      Nombre_proyecto: row?.proyectos?.Nombre_proyecto || null,
+      Empleado: `${row?.empleados?.Nombre || ''} ${row?.empleados?.Apellido || ''}`.trim() || null,
+    }));
+    return res.json(list);
+  } catch (err) {
+    console.error('Error en getTasksByEmployee:', err);
+    return res.status(500).json({ message: 'Error en petición personalizada (tareas por empleado)', error: err?.message || String(err) });
+  }
+}
+
+async function getResourcesByCost(req, res) {
+  try {
+    const raw = (req.query.min || req.query.Min || req.query.Costo_mensual || '').toString().trim();
+    const min = Number(raw);
+    const rawMax = (req.query.max || req.query.Max || '').toString().trim();
+    const max = rawMax ? Number(rawMax) : null;
+    if (!Number.isFinite(min)) {
+      return res.status(400).json({ message: 'Parámetro numérico requerido: min (Costo mínimo)' });
+    }
+    const supabase = getSupabase();
+    if (!supabase) {
+      return res.status(500).json({ message: 'Supabase no está configurado. Define SUPABASE_URL y la clave en .env' });
+    }
+
+    let query = supabase
+      .from('recursos')
+      .select('Nombre_recurso,Tipo,Costo_mensual')
+      .gt('Costo_mensual', min);
+    if (Number.isFinite(max)) {
+      query = query.lt('Costo_mensual', max);
+    }
+    query = query.order('Costo_mensual', { ascending: false });
+    const { data, error } = await query;
+    if (error) throw error;
+
+    return res.json(Array.isArray(data) ? data : []);
+  } catch (err) {
+    console.error('Error en getResourcesByCost:', err);
+    return res.status(500).json({ message: 'Error en petición personalizada (recursos por costo)', error: err?.message || String(err) });
+  }
+}
+
+module.exports = { getHoursByEmployee, getClientsWithMultipleProjects, getInvoicesByClient, getProjectsByEstado, getTasksByEmployee, getResourcesByCost };

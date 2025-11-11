@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getHoursByEmployee, getClientsWithMultipleProjects, getInvoicesByClient, getProjectsByEstado } = require('../controllers/customController');
+const { getHoursByEmployee, getClientsWithMultipleProjects, getInvoicesByClient, getProjectsByEstado, getTasksByEmployee, getResourcesByCost } = require('../controllers/customController');
 
 // GET /api/custom/hours?id_empleado=5
 router.get('/hours', getHoursByEmployee);
@@ -10,5 +10,9 @@ router.get('/clients-multi-projects', getClientsWithMultipleProjects);
 router.get('/invoices-by-client', getInvoicesByClient);
 // GET /api/custom/projects-by-estado?Estado=Finalizado
 router.get('/projects-by-estado', getProjectsByEstado);
+// GET /api/custom/tasks-by-employee?id_empleado=1
+router.get('/tasks-by-employee', getTasksByEmployee);
+// GET /api/custom/resources-by-cost?min=1000
+router.get('/resources-by-cost', getResourcesByCost);
 
 module.exports = router;
