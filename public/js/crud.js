@@ -6,6 +6,7 @@ const statusEl = document.getElementById('crud-status');
 const theadEl = document.getElementById('crud-thead');
 const tbodyEl = document.getElementById('crud-tbody');
 const insertBtn = document.getElementById('crud-insert');
+const exportBtn = document.getElementById('crud-export');
 const searchEl = document.getElementById('crud-search');
 const modalEl = document.getElementById('crud-modal');
 const modalCloseBtn = document.getElementById('crud-modal-close');
@@ -195,6 +196,36 @@ function renderTable(table, rows) {
   try { window.lucide && window.lucide.createIcons(); } catch {}
 }
 
+function toCSV(columns, rows) {
+  const esc = (v) => {
+    const s = String(v ?? '');
+    const needsQuote = /[",\n]/.test(s);
+    const qq = s.replace(/"/g, '""');
+    return needsQuote ? '"' + qq + '"' : qq;
+  };
+  const header = columns.map(c => esc(c)).join(',');
+  const lines = rows.map(r => columns.map(c => esc(formatDisplayValue(c, r?.[c]))).join(','));
+  return [header, ...lines].join('\n');
+}
+
+function downloadCSV(filename, csv) {
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function toAOA(columns, rows) {
+  const header = columns.slice();
+  const data = rows.map(r => columns.map(c => formatDisplayValue(c, r?.[c])));
+  return [header, ...data];
+}
+
 function promptValues(columns, row = {}) {
   const values = {};
   for (const c of columns) {
@@ -252,6 +283,28 @@ searchEl.addEventListener('input', (e) => {
   searchQuery = (e.target.value || '').trim();
   // Vuelve a pedir al backend usando q (o local fallback)
   load(tableSelect.value);
+});
+
+exportBtn?.addEventListener('click', () => {
+  const table = tableSelect.value;
+  const columns = columnsByTable[table] || [];
+  const rows = allRows || [];
+  if (!rows.length) {
+    alert('No hay datos para exportar.');
+    return;
+  }
+  const fnameBase = `${table}${searchQuery ? '-filtrado' : ''}`;
+  // Si está disponible XLSX, exporta .xlsx; si no, fallback a CSV
+  if (window.XLSX && XLSX.utils) {
+    const aoa = toAOA(columns, rows);
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, table);
+    XLSX.writeFile(wb, `${fnameBase}.xlsx`);
+  } else {
+    const csv = toCSV(columns, rows);
+    downloadCSV(`${fnameBase}.csv`, csv);
+  }
 });
 
 function applySearch(rows, q) {

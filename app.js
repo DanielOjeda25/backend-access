@@ -18,6 +18,16 @@ app.use((req, res, next) => {
 // servir archivos estáticos para la pantalla UI
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Redirigir raíz a la pantalla principal (crud)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Redirección permanente desde la antigua ruta de Administrar
+app.get('/crud.html', (req, res) => {
+  res.redirect(301, '/index.html');
+});
+
 // API endpoints
 app.use('/api/empleados', empleadoRoutes);
 app.use('/api/clientes', clienteRoutes);

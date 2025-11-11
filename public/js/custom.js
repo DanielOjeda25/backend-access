@@ -30,15 +30,50 @@ const costoMinSelect = document.getElementById('costo-min-select');
 const consultarRecursosBtn = document.getElementById('consultar-recursos');
 const resultadoRecursosEl = document.getElementById('resultado-recursos');
 const infoRecursosBtn = document.getElementById('info-recursos');
-import { renderBoxTable } from './custom-ui.js';
+// Botones de exportación por sección
+const exportHorasBtn = document.getElementById('export-horas');
+const exportClientesBtn = document.getElementById('export-clientes');
+const exportFacturasBtn = document.getElementById('export-facturas');
+const exportProyectosBtn = document.getElementById('export-proyectos');
+const exportTareasBtn = document.getElementById('export-tareas');
+const exportRecursosBtn = document.getElementById('export-recursos');
+import { renderBoxTable, exportContainerToXLSX } from './custom-ui.js';
+import {
+  fetchEmpleados,
+  consultarHoras,
+  fetchClientesMultiProjects,
+  fetchClientes,
+  fetchFacturasByCliente,
+  fetchProjectStatuses,
+  fetchProyectosByEstado,
+  fetchTareasByEmpleado,
+  fetchRecursosByCosto,
+} from './custom-service.js';
+import { openInfoModal, initInfoModal } from './custom-modal.js';
+import { initController } from './custom-controller.js';
 
 // Tabla reutilizable: importada desde custom-ui.js
-async function fetchEmpleados() {
-  const res = await fetch('/api/list/empleados');
-  if (!res.ok) throw new Error('No se pudo listar empleados');
-  const empleados = await res.json();
-  return Array.isArray(empleados) ? empleados : [];
-}
+// fetchEmpleados movido a custom-service.js
+
+// Exportadores XLSX por cajita
+exportHorasBtn?.addEventListener('click', () => {
+  exportContainerToXLSX(resultadoEl, 'Horas', 'horas-por-empleado');
+});
+exportClientesBtn?.addEventListener('click', () => {
+  exportContainerToXLSX(resultadoClientesEl, 'Clientes', 'clientes-multiproyectos');
+});
+exportFacturasBtn?.addEventListener('click', () => {
+  exportContainerToXLSX(resultadoFacturasEl, 'Facturas', 'facturas-por-cliente');
+});
+exportProyectosBtn?.addEventListener('click', () => {
+  exportContainerToXLSX(resultadoProyectosEl, 'Proyectos', 'proyectos-por-estado');
+});
+exportTareasBtn?.addEventListener('click', () => {
+  exportContainerToXLSX(resultadoTareasEl, 'Tareas', 'tareas-por-empleado');
+});
+exportRecursosBtn?.addEventListener('click', () => {
+  exportContainerToXLSX(resultadoRecursosEl, 'Recursos', 'recursos-por-costo');
+});
 
 function renderEmpleados(empleados) {
   empleadosSelect.innerHTML = '';
@@ -72,13 +107,7 @@ function renderEmpleados(empleados) {
   }
 }
 
-async function consultarHoras(idEmpleado) {
-  const url = `/api/custom/hours?id_empleado=${encodeURIComponent(idEmpleado)}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Error en consulta de horas');
-  const data = await res.json();
-  return data;
-}
+// consultarHoras movido a custom-service.js
 
 function renderResultado(data) {
   const empleado = data?.Empleado ?? '-';
@@ -86,40 +115,11 @@ function renderResultado(data) {
   renderBoxTable(resultadoEl, ['Empleado', 'Total horas'], [[empleado, total]]);
 }
 
-async function init() {
-  try {
-    const empleados = await fetchEmpleados();
-    renderEmpleados(empleados);
-    const clientes = await fetchClientes();
-    renderClientes(clientes);
-    const estados = await fetchProjectStatuses();
-    renderEstados(estados);
-  } catch (err) {
-    resultadoEl.textContent = `Error cargando empleados: ${err?.message || err}`;
-  }
-}
+// init delegado al controlador
 
-consultarBtn.addEventListener('click', async () => {
-  try {
-    const selected = empleadosSelect.value;
-    const id = selected;
-    if (!id) {
-      resultadoEl.textContent = 'Seleccione un empleado.';
-      return;
-    }
-    const data = await consultarHoras(id);
-    renderResultado(data);
-  } catch (err) {
-    resultadoEl.textContent = `Error en consulta: ${err?.message || err}`;
-  }
-});
+// listener delegado al controlador
 
-async function fetchClientesMultiProjects() {
-  const res = await fetch('/api/custom/clients-multi-projects');
-  if (!res.ok) throw new Error('Error listando clientes con múltiples proyectos');
-  const data = await res.json();
-  return Array.isArray(data) ? data : [];
-}
+// fetchClientesMultiProjects movido a custom-service.js
 
 function renderClientesMulti(list) {
   resultadoClientesEl.innerHTML = '';
@@ -135,21 +135,9 @@ function renderClientesMulti(list) {
   renderBoxTable(resultadoClientesEl, ['Cliente', 'Cantidad de proyectos'], rows);
 }
 
-listarClientesBtn.addEventListener('click', async () => {
-  try {
-    const list = await fetchClientesMultiProjects();
-    renderClientesMulti(list);
-  } catch (err) {
-    resultadoClientesEl.textContent = `Error: ${err?.message || err}`;
-  }
-});
+// listener delegado al controlador
 
-async function fetchClientes() {
-  const res = await fetch('/api/clientes');
-  if (!res.ok) throw new Error('No se pudo listar clientes');
-  const clientes = await res.json();
-  return Array.isArray(clientes) ? clientes : [];
-}
+// fetchClientes movido a custom-service.js
 
 function renderClientes(clientes) {
   clienteSelect.innerHTML = '';
@@ -165,12 +153,7 @@ function renderClientes(clientes) {
   });
 }
 
-async function fetchFacturasByCliente(idCliente) {
-  const res = await fetch(`/api/custom/invoices-by-client?id_cliente=${encodeURIComponent(idCliente)}`);
-  if (!res.ok) throw new Error('Error listando facturas del cliente');
-  const data = await res.json();
-  return Array.isArray(data) ? data : [];
-}
+// fetchFacturasByCliente movido a custom-service.js
 
 function renderFacturas(list) {
   resultadoFacturasEl.innerHTML = '';
@@ -187,32 +170,9 @@ function renderFacturas(list) {
   renderBoxTable(resultadoFacturasEl, ['Proyecto', 'Fecha emisión', 'Total'], rows);
 }
 
-consultarFacturasBtn.addEventListener('click', async () => {
-  try {
-    const id = clienteSelect.value;
-    if (!id) {
-      resultadoFacturasEl.textContent = 'Seleccione un cliente.';
-      return;
-    }
-    const list = await fetchFacturasByCliente(id);
-    renderFacturas(list);
-  } catch (err) {
-    resultadoFacturasEl.textContent = `Error: ${err?.message || err}`;
-  }
-});
+// listener delegado al controlador
 
-async function fetchProjectStatuses() {
-  const res = await fetch('/api/list/proyectos');
-  if (!res.ok) throw new Error('No se pudo listar proyectos');
-  const proyectos = await res.json();
-  const estados = new Set();
-  (Array.isArray(proyectos) ? proyectos : []).forEach(p => {
-    if (p && typeof p.Estado === 'string' && p.Estado.trim()) {
-      estados.add(p.Estado.trim());
-    }
-  });
-  return Array.from(estados).sort((a, b) => a.localeCompare(b));
-}
+// fetchProjectStatuses movido a custom-service.js
 
 function renderEstados(estados) {
   estadoSelect.innerHTML = '';
@@ -228,12 +188,7 @@ function renderEstados(estados) {
   });
 }
 
-async function fetchProyectosByEstado(estado) {
-  const res = await fetch(`/api/custom/projects-by-estado?Estado=${encodeURIComponent(estado)}`);
-  if (!res.ok) throw new Error('Error listando proyectos por estado');
-  const data = await res.json();
-  return Array.isArray(data) ? data : [];
-}
+// fetchProyectosByEstado movido a custom-service.js
 
 function renderProyectos(list) {
   resultadoProyectosEl.innerHTML = '';
@@ -251,26 +206,9 @@ function renderProyectos(list) {
   renderBoxTable(resultadoProyectosEl, ['ID', 'Nombre proyecto', 'Fecha inicio', 'Estado'], rows);
 }
 
-consultarProyectosBtn.addEventListener('click', async () => {
-  try {
-    const estado = estadoSelect.value;
-    if (!estado) {
-      resultadoProyectosEl.textContent = 'Seleccione un estado.';
-      return;
-    }
-    const list = await fetchProyectosByEstado(estado);
-    renderProyectos(list);
-  } catch (err) {
-    resultadoProyectosEl.textContent = `Error: ${err?.message || err}`;
-  }
-});
+// listener delegado al controlador
 
-async function fetchTareasByEmpleado(idEmpleado) {
-  const res = await fetch(`/api/custom/tasks-by-employee?id_empleado=${encodeURIComponent(idEmpleado)}`);
-  if (!res.ok) throw new Error('Error listando tareas del empleado');
-  const data = await res.json();
-  return Array.isArray(data) ? data : [];
-}
+// fetchTareasByEmpleado movido a custom-service.js
 
 function renderTareas(list) {
   resultadoTareasEl.innerHTML = '';
@@ -289,30 +227,9 @@ function renderTareas(list) {
   renderBoxTable(resultadoTareasEl, ['ID', 'Tarea', 'Estado', 'Proyecto', 'Empleado'], rows);
 }
 
-consultarTareasBtn.addEventListener('click', async () => {
-  try {
-    const id = empleadoTareasSelect.value;
-    if (!id) {
-      resultadoTareasEl.textContent = 'Seleccione un empleado.';
-      return;
-    }
-    const list = await fetchTareasByEmpleado(id);
-    renderTareas(list);
-  } catch (err) {
-    resultadoTareasEl.textContent = `Error: ${err?.message || err}`;
-  }
-});
+// listener delegado al controlador
 
-async function fetchRecursosByCosto(min, max) {
-  const params = new URLSearchParams();
-  params.set('min', String(min));
-  if (Number.isFinite(max)) params.set('max', String(max));
-  const url = `/api/custom/resources-by-cost?${params.toString()}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Error listando recursos por costo');
-  const data = await res.json();
-  return Array.isArray(data) ? data : [];
-}
+// fetchRecursosByCosto movido a custom-service.js
 
 function renderRecursos(list) {
   resultadoRecursosEl.innerHTML = '';
@@ -329,86 +246,51 @@ function renderRecursos(list) {
   renderBoxTable(resultadoRecursosEl, ['Recurso', 'Tipo', 'Costo mensual'], rows);
 }
 
-consultarRecursosBtn.addEventListener('click', async () => {
-  try {
-    const val = (costoMinSelect.value || '').trim();
-    if (!val) {
-      resultadoRecursosEl.textContent = 'Seleccione un rango válido.';
-      return;
-    }
-    let min, max = null;
-    if (val.endsWith('+')) {
-      min = Number(val.replace('+', ''));
-    } else {
-      const [a, b] = val.split('-');
-      min = Number(a);
-      max = Number(b);
-    }
-    if (!Number.isFinite(min) || min < 0 || (max !== null && !Number.isFinite(max))) {
-      resultadoRecursosEl.textContent = 'Rango inválido. Seleccione una opción válida.';
-      return;
-    }
-    const list = await fetchRecursosByCosto(min, max);
-    renderRecursos(list);
-  } catch (err) {
-    resultadoRecursosEl.textContent = `Error: ${err?.message || err}`;
-  }
+// listener delegado al controlador
+
+// Bootstrap: pasar dependencias al controlador
+initController({
+  empleadosSelect,
+  consultarBtn,
+  resultadoEl,
+  listarClientesBtn,
+  resultadoClientesEl,
+  clienteSelect,
+  consultarFacturasBtn,
+  resultadoFacturasEl,
+  estadoSelect,
+  consultarProyectosBtn,
+  resultadoProyectosEl,
+  empleadoTareasSelect,
+  consultarTareasBtn,
+  resultadoTareasEl,
+  costoMinSelect,
+  consultarRecursosBtn,
+  resultadoRecursosEl,
+  infoHorasBtn,
+  infoClientesBtn,
+  infoFacturasBtn,
+  infoProyectosBtn,
+  infoTareasBtn,
+  infoRecursosBtn,
+  fetchEmpleados,
+  consultarHoras,
+  fetchClientes,
+  fetchClientesMultiProjects,
+  fetchFacturasByCliente,
+  fetchProjectStatuses,
+  fetchProyectosByEstado,
+  fetchTareasByEmpleado,
+  fetchRecursosByCosto,
+  renderEmpleados,
+  renderResultado,
+  renderClientes,
+  renderClientesMulti,
+  renderFacturas,
+  renderEstados,
+  renderProyectos,
+  renderTareas,
+  renderRecursos,
+  openInfoModal,
+  initInfoModal,
 });
-
-function openInfoModal(type) {
-  let title = '';
-  let desc = '';
-  let code = '';
-  if (type === 'horas') {
-    title = 'Consulta: Total de horas por empleado';
-    desc = 'Consulta SQL del total de horas por un empleado específico:';
-    code = `SELECT e.Nombre, e.Apellido, COALESCE(SUM(t.Horas_trabajadas), 0) AS Total_Horas\nFROM tiempo_de_desarrollo t\nINNER JOIN empleados e ON e.Id_empleados = t.Id_empleado\nWHERE t.Id_empleado = :Id_empleado\nGROUP BY e.Nombre, e.Apellido;`;
-  } else if (type === 'clientes') {
-    title = 'Muestra: Clientes con más de un proyecto';
-    desc = 'Consulta SQL que obtiene razón social y cantidad de proyectos por cliente:';
-    code = `SELECT c.Razon_social AS Nombre_Cliente, COUNT(p.Id_proyecto) AS Cantidad_Proyectos\nFROM proyectos p\nINNER JOIN clientes c ON c.Id_cliente = p.Id_cliente\nGROUP BY c.Id_cliente, c.Razon_social\nHAVING COUNT(p.Id_proyecto) > 1;`;
-  } else if (type === 'facturas') {
-    title = 'Consulta: Facturas por cliente (con proyecto)';
-    desc = 'Consulta SQL que lista facturas del cliente y su proyecto:';
-    code = `SELECT f.Id_factura, f.Fecha_emision, f.Total, c.Razon_social AS Cliente, p.Nombre_proyecto\nFROM factura_encabezado f\nINNER JOIN clientes c ON c.Id_cliente = f.Id_cliente\nINNER JOIN proyectos p ON p.Id_proyecto = f.Id_proyecto\nWHERE f.Id_cliente = :Id_cliente;`;
-  } else if (type === 'proyectos') {
-    title = 'Consulta: Proyectos por estado';
-    desc = 'Consulta SQL que lista proyectos por estado, ordenados por fecha de inicio descendente:';
-    code = `SELECT Id_proyecto, Nombre_proyecto, Fecha_inicio, Estado\nFROM Proyectos\nWHERE Estado = :Estado\nORDER BY Fecha_inicio DESC;`;
-  } else if (type === 'tareas') {
-    title = 'Consulta: Tareas por empleado';
-    desc = 'Consulta SQL que lista las tareas del empleado con su proyecto:';
-    code = `SELECT t.Id_tarea, t.Nombre_tarea, t.Estado AS Estado_Tarea, p.Nombre_proyecto, CONCAT(e.Nombre, ' ' , e.Apellido) AS Empleado\nFROM Tareas t\nINNER JOIN Proyectos p ON t.Id_proyecto = p.Id_proyecto\nINNER JOIN Empleados e ON t.Id_empleado = e.Id_empleados\nWHERE t.Id_empleado = :Id_empleado;`;
-  } else if (type === 'recursos') {
-    title = 'Consulta: Recursos por costo mensual';
-    const val = (costoMinSelect?.value || '').trim();
-    if (val && !val.endsWith('+')) {
-      desc = 'Consulta SQL que lista recursos dentro de un rango de costo mensual:';
-      code = `SELECT nombre_recurso, tipo, costo_mensual\nFROM Recursos\nWHERE costo_mensual > :Min AND costo_mensual < :Max\nORDER BY costo_mensual DESC;`;
-    } else {
-      desc = 'Consulta SQL que lista recursos con costo mensual superior al valor dado:';
-      code = `SELECT nombre_recurso, tipo, costo_mensual\nFROM Recursos\nWHERE costo_mensual > :Min\nORDER BY costo_mensual DESC;`;
-    }
-  }
-  infoModalTitle.textContent = title;
-  infoModalDesc.textContent = desc;
-  infoModalCode.textContent = code;
-  infoModal.classList.remove('hidden');
-}
-
-function closeInfoModal() {
-  infoModal.classList.add('hidden');
-}
-
-infoHorasBtn.addEventListener('click', () => openInfoModal('horas'));
-infoClientesBtn.addEventListener('click', () => openInfoModal('clientes'));
-infoFacturasBtn.addEventListener('click', () => openInfoModal('facturas'));
-infoProyectosBtn.addEventListener('click', () => openInfoModal('proyectos'));
-infoTareasBtn.addEventListener('click', () => openInfoModal('tareas'));
-infoRecursosBtn.addEventListener('click', () => openInfoModal('recursos'));
-infoModalClose.addEventListener('click', closeInfoModal);
-infoModal.addEventListener('click', (e) => {
-  if (e.target === infoModal) closeInfoModal();
-});
-
-init();
